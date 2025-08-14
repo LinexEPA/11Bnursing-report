@@ -1,123 +1,78 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>臨床通報小幫手｜讓我們一起維護病人安全</title>
-  <script src="./config.js"></script>
-  <style>
-    :root{
-      --bg:#faf7ff;--card:#ffffff;--ink:#2f2a3b;--muted:#6b6280;
-      --primary:#7c5cff;--primary-weak:#efeaff;--ring:#e9e2ff;
-      --shadow:0 12px 28px rgba(124,92,255,.14);--radius:18px;
-      --badge:#fff0f5;--badgeText:#d9487d;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,"Noto Sans TC",Arial}
-    .top{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#fff8ff,rgba(255,255,255,.85));backdrop-filter:blur(6px);border-bottom:1px solid var(--ring)}
-    .wrap{max-width:1200px;margin:0 auto;padding:16px}
-    h1{font-size:20px;margin:0}
-    .nav{margin-left:auto}
-    .nav a{color:var(--primary);text-decoration:none;font-weight:800;background:var(--primary-weak);padding:8px 12px;border-radius:12px}
-    .ctrl{display:flex;gap:10px;align-items:center;margin:10px 0;flex-wrap:wrap}
-    input,select{padding:10px 12px;border:1.2px solid var(--ring);border-radius:12px;outline:none;background:#fff}
-    input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-weak)}
-    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--ring)}
-    table{width:100%;border-collapse:separate;border-spacing:0}
-    thead th{position:sticky;top:64px;z-index:5;background:#fdfbff;color:var(--muted);font-size:12px;text-align:left;padding:12px;border-bottom:1px solid var(--ring);white-space:nowrap}
-    tbody td{padding:12px;border-bottom:1px solid #f2ecff;vertical-align:top;font-size:14px}
-    tbody tr:nth-child(odd){background:#fefcff}
-    tbody tr:hover{background:#fbf7ff}
-    .nowrap{white-space:nowrap}
-    .pre{white-space:pre-wrap}
-    .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--badge);color:var(--badgeText);font-weight:700;font-size:12px}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--primary-weak);color:var(--primary);font-weight:700;font-size:12px;margin-left:6px}
-    .spacer{flex:1}
-    .w-time{width:160px}.w-cat{width:110px}.w-sev{width:110px}.w-id{width:120px}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>臨床通報小幫手｜查閱</title>
+<script src="./config.js"></script>
+<style>
+  body{font-family:ui-sans-serif,"Noto Sans TC",Arial;margin:0;background:#faf7ff;color:#2f2a3b}
+  .top{position:sticky;top:0;background:#fff8ff;backdrop-filter:blur(6px);border-bottom:1px solid #e9e2ff;z-index:10}
+  .wrap{max-width:960px;margin:0 auto;padding:16px}
+  h1{font-size:20px;margin:0}
+  .nav{margin-left:auto}
+  .nav a{color:#7c5cff;text-decoration:none;font-weight:800;background:#efeaff;padding:8px 12px;border-radius:12px}
+  table{border-collapse:collapse;width:100%;margin-top:12px;background:white;border-radius:14px;overflow:hidden}
+  th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
+  th{background:#f7f4ff;position:sticky;top:64px;z-index:5} /* 固定表頭 */
+  tr:hover td{background:#faf5ff}
+</style>
 </head>
 <body>
-  <div class="top">
-    <div class="wrap" style="display:flex;align-items:center;gap:12px">
-      <h1>臨床通報小幫手</h1><span class="pill">查閱</span>
-      <div class="spacer"></div>
-      <div class="nav"><a href="./index.html">填報</a></div>
-    </div>
+<div class="top">
+  <div class="wrap" style="display:flex;align-items:center;gap:12px">
+    <div style="font-size:22px">📋</div>
+    <h1>臨床通報小幫手</h1>
+    <div class="nav"><a href="./index.html">填報</a></div>
   </div>
+</div>
 
-  <div class="wrap">
-    <div class="ctrl">
-      <input id="q" placeholder="搜尋關鍵字（人名、單位、內容…）" oninput="load()">
-      <select id="limit" onchange="load()">
-        <option value="20">最近 20 筆</option>
-        <option value="50" selected>最近 50 筆</option>
-        <option value="100">最近 100 筆</option>
-      </select>
-      <div class="spacer"></div>
-      <a id="sheet" target="_blank" style="text-decoration:none;color:var(--primary);font-weight:800">前往試算表 ↗</a>
-    </div>
+<div class="wrap">
+  <table id="reportTable">
+    <thead>
+      <tr id="tableHeader"></tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
 
-    <div class="card">
-      <table id="tbl">
-        <thead>
-          <tr>
-            <th class="w-time">通報日期</th>
-            <th class="w-cat">類別</th>
-            <th class="w-sev">傷害程度</th>
-            <th class="w-id">病歷號</th>
-            <th class="w-id">病人姓名</th>
-            <th class="w-time">入院日</th>
-            <th class="w-sev">住院天數</th>
-            <th class="w-id">單位/床號</th>
-            <th class="w-id">主要因素</th>
-            <th>通報內容</th>
-            <th>護理措施</th>
-            <th>建議措施</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
+<script>
+if(typeof GAS_URL==='undefined'){alert('config.js 未載入');}
 
-  <script>
-    function fmtDate(v){try{const d=new Date(v);return isNaN(d)?v:d.toLocaleString()}catch(e){return v}}
+window.addEventListener('DOMContentLoaded', loadData);
 
-    async function load(){
-      try{
-        const u = new URL(GAS_URL);
-        u.searchParams.set('action','list');
-        u.searchParams.set('limit', document.getElementById('limit').value);
-        u.searchParams.set('query', document.getElementById('q').value.trim());
-        const r = await fetch(u);
-        const { ok, rows, sheetUrl } = await r.json();
-        if(!ok) throw new Error('API 回傳失敗');
-        document.getElementById('sheet').href = sheetUrl;
+async function loadData(){
+  try{
+    const res = await fetch(`${GAS_URL}?action=list&limit=200`, {cache:'no-store'});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error||'無法取得資料');
 
-        const tb = document.querySelector('#tbl tbody');
-        tb.innerHTML = '';
-        (rows||[]).forEach(row=>{
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td class="nowrap">${fmtDate(row['通報日期'])}</td>
-            <td><span class="badge">${row['類別']||''}</span></td>
-            <td><span class="badge">${row['傷害程度']||''}</span></td>
-            <td class="nowrap">${row['病歷號']||''}</td>
-            <td class="nowrap">${row['病人姓名']||''}</td>
-            <td class="nowrap">${fmtDate(row['入院日'])}</td>
-            <td class="nowrap">${row['住院天數']||''}</td>
-            <td class="nowrap">${row['單位/床號']||''}</td>
-            <td class="nowrap">${row['主要因素']||''}</td>
-            <td class="pre">${row['通報內容']||''}</td>
-            <td class="pre">${row['護理措施']||''}</td>
-            <td class="pre">${row['建議措施']||''}</td>`;
-          tb.appendChild(tr);
-        });
-      }catch(e){
-        alert('載入失敗，請檢查 GAS_URL / 權限'); console.error(e);
-      }
-    }
-    load(); setInterval(load,15000);
-  </script>
+    const rows = data.rows || [];
+    if(!rows.length){document.getElementById('tableBody').innerHTML='<tr><td>沒有資料</td></tr>';return;}
+
+    // 取得表頭
+    const headers = Object.keys(rows[0]);
+    const headerRow = document.getElementById('tableHeader');
+    headerRow.innerHTML = headers.map(h=>`<th>${h}</th>`).join('');
+
+    // 依日期排序（假設第一欄是日期）
+    rows.sort((a,b)=>{
+      const da = new Date(a[headers[0]]);
+      const db = new Date(b[headers[0]]);
+      return db - da; // 新的在上
+    });
+
+    // 填入表格
+    const body = document.getElementById('tableBody');
+    body.innerHTML = rows.map(r=>{
+      return `<tr>${headers.map(h=>`<td>${r[h]||''}</td>`).join('')}</tr>`;
+    }).join('');
+  }catch(err){
+    console.error(err);
+    alert('載入資料失敗：'+err.message);
+  }
+}
+</script>
 </body>
 </html>
