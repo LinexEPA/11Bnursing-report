@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>臨床通報小幫手｜查閱</title>
+  <style>
+    body{font-family:ui-sans-serif,system-ui,'Noto Sans TC',Arial;margin:0;background:#f7f7fb}
+    .container{max-width:1200px;margin:0 auto;padding:16px}
+    .top{position:sticky;top:0;background:rgba(247,247,251,.9);backdrop-filter:blur(6px);border-bottom:1px solid #eee}
+    h1{font-size:20px;margin:0;padding:12px 16px}
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+    th,td{padding:10px 12px;font-size:14px;border-bottom:1px solid #eee;text-align:left}
+    th{background:#f9fafb;color:#374151;white-space:nowrap}
+    tr:hover{background:#f3f4f6}
+    .nav{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin:8px 0}
+    .nav a{text-decoration:none;font-weight:700;color:#4f46e5}
+  </style>
+  <script src="./config.js"></script>
+</head>
+<body>
+  <div class="top"><h1>臨床通報小幫手｜查閱</h1></div>
+  <div class="container">
+    <div class="nav"><a href="./index.html">填報</a></div>
+    <table id="list">
+      <thead>
+        <tr>
+          <th>通報日期</th>
+          <th>類別</th>
+          <th>傷害程度</th>
+          <th>病歷號</th>
+          <th>病人姓名</th>
+          <th>入院日</th>
+          <th>住院天數</th>
+          <th>單位/床號</th>
+          <th>主要因素</th>
+          <th>通報內容</th>
+          <th>護理措施</th>
+          <th>建議措施</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    async function loadData(){
+      const url = `${GAS_URL}?action=list`;
+      const res = await fetch(url);
+      const rows = await res.json();
+      const tbody = document.querySelector('#list tbody');
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.reportDate||''}</td>
+          <td>${r.category||''}</td>
+          <td>${r.severity||''}</td>
+          <td>${r.chartNo||''}</td>
+          <td>${r.name||''}</td>
+          <td>${r.admitDate||''}</td>
+          <td>${r.stayDays||''}</td>
+          <td>${r.bed||''}</td>
+          <td>${r.factor||''}</td>
+          <td>${r.message||''}</td>
+          <td>${r.nursing||''}</td>
+          <td>${r.advice||''}</td>
+        </tr>
+      `).join('');
+    }
+    loadData();
+  </script>
+</body>
+</html>
