@@ -10,7 +10,7 @@
       --bg:#faf7ff;--card:#fff;--ink:#2f2a3b;--muted:#6b6280;
       --primary:#7c5cff;--primary-weak:#efeaff;--ring:#e9e2ff;
       --shadow:0 12px 28px rgba(124,92,255,.14);--radius:18px;
-      /* ★ 表頭黏在畫面頂部的距離（上方有標題+工具列） */
+      /* 根據你的頁首＋控制列高度，必要時可微調這個數字 */
       --stickyTop: 140px;
     }
     @media (max-width: 720px){ :root{ --stickyTop: 120px; } }
@@ -61,6 +61,7 @@
 
     <div class="card">
       <table id="tbl">
+        <!-- 表頭固定寫在 thead：永遠第一列，不會被資料影響 -->
         <thead>
           <tr>
             <th>通報日期</th>
@@ -77,13 +78,54 @@
             <th>建議措施</th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody></tbody> <!-- 只把資料塞進 tbody -->
       </table>
     </div>
   </div>
 
   <script>
     if (typeof GAS_URL==='undefined'){ alert('config.js 未載入'); }
+
+    // 欄位對應（固定順序，避免表頭與資料錯位）
+    const COLS = [
+      '通報日期','類別','傷害程度','病歷號','病人姓名',
+      '入院日','住院天數','單位/床號','主要因素',
+      '通報內容','護理措施','建議措施'
+    ];
+
+    // 將任何格式的日期 → yyyy/MM/dd（只要日期，不要時間）
+    function toDateString(v){
+      if (!v) return '';
+      // 如果是 "2025-08-14T00:00:00.000Z" → 先取前 10 碼
+      const s = String(v);
+      const iso = s.length >= 10 ? s.slice(0,10) : s;
+      // 允許 "yyyy-MM-dd" / "yyyy/MM/dd"
+      const m = /^(\d{4})[-/](\d{2})[-/](\d{2})$/.exec(iso);
+      if (m){
+        const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+        const y = d.getFullYear();
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const dd = String(d.getDate()).padStart(2,'0');
+        return `${y}/${mm}/${dd}`;
+      }
+      // 如果是 Date 物件
+      const d2 = new Date(s);
+      if (!isNaN(d2)) {
+        const y = d2.getFullYear();
+        const mm = String(d2.getMonth()+1).padStart(2,'0');
+        const dd = String(d2.getDate()).padStart(2,'0');
+        return `${y}/${mm}/${dd}`;
+      }
+      return s; // 其他情況就原樣回傳
+    }
+
+    // 排序用：把字串轉成時間戳
+    function toTime(v){
+      const s = toDateString(v); // e.g. 2025/08/14
+      const m = /^(\d{4})\/(\d{2})\/(\d{2})$/.exec(s);
+      if (m) return new Date(Number(m[1]), Number(m[2])-1, Number(m[3])).getTime();
+      const d = new Date(v); return isNaN(d)?0:d.getTime();
+    }
 
     async function load(){
       try{
@@ -96,30 +138,27 @@
         if(!ok) throw new Error('API 回傳失敗');
         document.getElementById('sheet').href = sheetUrl;
 
+        // 先把資料按「通報日期」由新到舊排序（不影響表頭）
+        const sorted = (rows||[]).slice().sort((a,b)=> toTime(b['通報日期']) - toTime(a['通報日期']));
+
+        // 塞進 tbody（表頭保持不動）
         const tb = document.querySelector('#tbl tbody');
         tb.innerHTML = '';
-        (rows||[]).forEach(row=>{
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${row['通報日期']||''}</td>
-            <td>${row['類別']||''}</td>
-            <td>${row['傷害程度']||''}</td>
-            <td>${row['病歷號']||''}</td>
-            <td>${row['病人姓名']||''}</td>
-            <td>${row['入院日']||''}</td>
-            <td>${row['住院天數']||''}</td>
-            <td>${row['單位/床號']||''}</td>
-            <td>${row['主要因素']||''}</td>
-            <td>${row['通報內容']||''}</td>
-            <td>${row['護理措施']||''}</td>
-            <td>${row['建議措施']||''}</td>`;
-          tb.appendChild(tr);
+        sorted.forEach(row=>{
+          const tds = COLS.map(key=>{
+            let v = row[key] ?? '';
+            if (key==='通報日期' || key==='入院日') v = toDateString(v); // 只顯示日期
+            return `<td>${v}</td>`;
+          }).join('');
+          tb.insertAdjacentHTML('beforeend', `<tr>${tds}</tr>`);
         });
       }catch(e){
         console.error(e);
         alert('載入失敗，請檢查 GAS_URL / 權限');
       }
     }
+
+    // 初次載入
     load();
   </script>
 </body>
