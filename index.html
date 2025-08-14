@@ -86,68 +86,105 @@
   </div>
 
   <script>
-    // 預設今日
-    (function(){
-      const today = new Date().toISOString().slice(0,10);
-      reportDate.value = today; admitDate.value = today;
-      loadOptions();
-    })();
+  // 防呆：確認已載入 GAS_URL
+  if (typeof GAS_URL === 'undefined') {
+    alert('config.js 未載入或 GAS_URL 未設定');
+  }
 
-    // ★ 下拉載入（含預設備援）
-    async function loadOptions(){
-      try{
-        const r = await fetch(`${GAS_URL}?action=options`);
-        if(!r.ok) throw new Error('HTTP '+r.status);
-        const data = await r.json();
-        const cats = (data.categories||[]).filter(Boolean);
-        const sevs = (data.severities||[]).filter(Boolean);
-        const facs = (data.factors||[]).filter(Boolean);
-        fillSelect('category', cats.length?cats:['跌倒','給藥','壓瘡','裝置','其他']);
-        fillSelect('severity', sevs.length?sevs:['跡近錯誤','無傷害','輕傷害','中傷害','重傷害','無法判定']);
-        fillSelect('factor',   facs.length?facs:['健康因素','環境因素','藥物因素','其他因素']);
-      }catch(e){
-        console.warn(e);
-        fillSelect('category',['跌倒','給藥','壓瘡','裝置','其他']);
-        fillSelect('severity',['跡近錯誤','無傷害','輕傷害','中傷害','重傷害','無法判定']);
-        fillSelect('factor',['健康因素','環境因素','藥物因素','其他因素']);
-        alert('無法載入選單，已使用預設項目。請稍後再試或檢查 GAS 設定。');
-      }
+  // 頁面載入：預設日期 + 載入選單
+  window.addEventListener('DOMContentLoaded', () => {
+    const today = new Date().toISOString().slice(0,10);
+    document.getElementById('reportDate').value = today;
+    document.getElementById('admitDate').value  = today;
+    loadOptions();
+  });
+
+  // ===== 下拉載入（含預設備援） =====
+  async function loadOptions(){
+    try{
+      const res = await fetch(`${GAS_URL}?action=options`, { cache: 'no-store' });
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      const cats = (data.categories||[]).filter(Boolean);
+      const sevs = (data.severities||[]).filter(Boolean);
+      const facs = (data.factors||[]).filter(Boolean);
+
+      fillSelect('category', cats.length?cats:['跌倒','給藥','壓瘡','裝置','其他']);
+      fillSelect('severity', sevs.length?sevs:['跡近錯誤','無傷害','輕傷害','中傷害','重傷害','無法判定']);
+      fillSelect('factor',   facs.length?facs:['健康因素','環境因素','藥物因素','其他因素']);
+
+      console.info('options loaded', {cats:cats.length, sevs:sevs.length, facs:facs.length});
+    }catch(err){
+      console.error('loadOptions error', err);
+      fillSelect('category',['跌倒','給藥','壓瘡','裝置','其他']);
+      fillSelect('severity',['跡近錯誤','無傷害','輕傷害','中傷害','重傷害','無法判定']);
+      fillSelect('factor',['健康因素','環境因素','藥物因素','其他因素']);
+      alert('無法載入選單，已使用預設項目。');
     }
-    function fillSelect(id, arr){
-      const s = document.getElementById(id);
-      s.innerHTML = '<option value="">請選擇</option>'+arr.map(v=>`<option value="${v}">${v}</option>`).join('');
+  }
+
+  function fillSelect(id, arr){
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">請選擇</option>' +
+      arr.map(v=>`<option value="${v}">${v}</option>`).join('');
+  }
+
+  // ===== 送出 =====
+  async function submitForm(){
+    const btn = document.getElementById('sendBtn');
+    const payload = {
+      action:    'submit',
+      reportDate: document.getElementById('reportDate').value,
+      admitDate:  document.getElementById('admitDate').value,
+      category:   document.getElementById('category').value,
+      severity:   document.getElementById('severity').value,
+      chartNo:    document.getElementById('chartNo').value.trim(),
+      name:       document.getElementById('name').value.trim(),
+      bed:        document.getElementById('bed').value.trim(),
+      factor:     document.getElementById('factor').value,
+      message:    document.getElementById('message').value.trim(),
+      nursing:    document.getElementById('nursing').value.trim(),
+      advice:     document.getElementById('advice').value.trim()
+    };
+
+    // 必填
+    if (!payload.category || !payload.severity || !payload.message){
+      alert('請至少選「類別」「傷害程度」，並輸入「通報內容」');
+      return;
     }
 
-    // 送出
-    async function submitForm(){
-      const btn = document.getElementById('sendBtn');
-      const payload = {
-        action:'submit',
-        reportDate: reportDate.value,
-        admitDate:  admitDate.value,
-        category:   category.value,
-        severity:   severity.value,
-        chartNo:    chartNo.value.trim(),
-        name:       name.value.trim(),
-        bed:        bed.value.trim(),
-        factor:     factor.value,
-        message:    message.value.trim(),
-        nursing:    nursing.value.trim(),
-        advice:     advice.value.trim()
-      };
-      if(!payload.category || !payload.severity || !payload.message){
-        alert('請至少選「類別」「傷害程度」，並輸入「通報內容」'); return;
+    try{
+      btn.disabled = true;
+      btn.textContent = '送出中…';
+
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      // 顯式處理 HTTP 非 2xx
+      if (!res.ok) {
+        const text = await res.text().catch(()=> '');
+        throw new Error(`HTTP ${res.status} ${res.statusText} ${text}`);
       }
-      try{
-        btn.disabled=true; btn.textContent='送出中…';
-        const r = await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-        const data = await r.json();
-        if(data.ok){ ok.style.display='block'; setTimeout(()=>location.href='./view.html',900); }
-        else{ throw new Error(data.error||'送出失敗'); }
-      }catch(e){
-        alert(e.message); btn.disabled=false; btn.textContent='送出';
+
+      const data = await res.json().catch(()=> ({}));
+      console.info('submit response', data);
+
+      if (data && data.ok) {
+        document.getElementById('ok').style.display='block';
+        setTimeout(()=>location.href='./view.html', 900);
+      } else {
+        throw new Error(data && data.error ? data.error : '回傳格式不正確');
       }
+    }catch(err){
+      console.error('submit error', err);
+      alert(`送出失敗：${err.message}\n請確認 GAS 部署權限為「任何人」，且 config.js 的 GAS_URL 是 /exec。`);
+    }finally{
+      btn.disabled = false;
+      btn.textContent = '送出';
     }
-  </script>
-</body>
-</html>
+  }
+</script>
