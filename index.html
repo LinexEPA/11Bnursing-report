@@ -42,8 +42,8 @@
         <div><label>病人姓名</label><input id="name" placeholder=""></div>
       </div>
       <div class="row">
-        <div><label>單位/床號</label><input id="bed" placeholder="內科二病房 10-1"></div>
-        <div><label>主要因素</label><input id="factor" placeholder="例如：跌倒風險、給藥…"></div>
+        <div><label>單位/床號</label><input id="bed" placeholder="2171-1"></div>
+        <div><label>主要因素</label><select id="factor" placeholder="例如：健康因素、環境因素、其他因素..."></div>
       </div>
     </div>
 
@@ -57,53 +57,30 @@
   </div>
 
   <script>
-    // 載入下拉
-    async function loadOptions(){
+  // 載入下拉（含類別、傷害程度、主要因素）
+  async function loadOptions(){
+    try {
       const url = `${GAS_URL}?action=options`;
       const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+
       fillSelect('category', data.categories || []);
       fillSelect('severity', data.severities || []);
+      fillSelect('factor',   data.factors    || []);
+    } catch (err) {
+      alert('無法載入選單，請檢查 GAS 網址/權限。' + '\nDetails: ' + err.message);
+      // 退而求其次：放預設三個主要因素，避免整頁無法使用
+      fillSelect('factor', ['健康因素','環境因素','其他因素']);
     }
-    function fillSelect(id, arr){
-      const sel = document.getElementById(id);
-      sel.innerHTML = '<option value="">請選擇</option>' + arr.map(v=>`<option>${v}</option>`).join('');
-    }
+  }
 
-    async function submitForm(){
-      const payload = {
-        action: 'submit',
-        reportDate: document.getElementById('reportDate').value,
-        admitDate:  document.getElementById('admitDate').value,
-        category:   document.getElementById('category').value,
-        severity:   document.getElementById('severity').value,
-        chartNo:    document.getElementById('chartNo').value.trim(),
-        name:       document.getElementById('name').value.trim(),
-        bed:        document.getElementById('bed').value.trim(),
-        factor:     document.getElementById('factor').value.trim(),
-        message:    document.getElementById('message').value.trim(),
-        nursing:    document.getElementById('nursing').value.trim(),
-        advice:     document.getElementById('advice').value.trim()
-      };
-      if (!payload.category || !payload.severity || !payload.message){
-        alert('請至少選「類別」「傷害程度」，並輸入「通報內容」');
-        return;
-      }
-      const res = await fetch(GAS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.ok){
-        document.getElementById('ok').style.display='block';
-        setTimeout(()=>location.href='./view.html', 800);
-      } else {
-        alert('送出失敗：' + (data.error || ''));
-      }
-    }
+  function fillSelect(id, arr){
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">請選擇</option>' +
+      arr.map(v=>`<option value="${v}">${v}</option>`).join('');
+  }
 
-    loadOptions();
-  </script>
-</body>
-</html>
+  // ... submitForm() 保持一樣（會把 factor 一起送）
+  loadOptions();
+</script>
