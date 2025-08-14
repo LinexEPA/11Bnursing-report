@@ -3,70 +3,36 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>11B病房_臨床通報統整小幫手｜填報~讓我們一起看到｜｜</title>
+  <title>11B病房臨床通報小幫手｜讓我們一起掌握</title>
   <script src="./config.js"></script>
   <style>
     :root{
-      --bg:#faf7ff;          /* 淡紫底 */
-      --card:#ffffff;        /* 卡片底 */
-      --ink:#2f2a3b;         /* 文字色 */
-      --muted:#6b6280;       /* 次要文字 */
-      --primary:#7c5cff;     /* 主色（溫柔紫） */
-      --primary-weak:#efeaff;
-      --accent:#ff8bb0;      /* 點綴粉 */
-      --ring:#e9e2ff;        /* 邊框/hover */
-      --ok:#10b981;          /* 成功綠 */
-      --shadow:0 10px 24px rgba(124,92,255,.12);
-      --radius:18px;
+      --bg:#faf7ff;--card:#ffffff;--ink:#2f2a3b;--muted:#6b6280;
+      --primary:#7c5cff;--primary-weak:#efeaff;--accent:#ff8bb0;
+      --ring:#e9e2ff;--ok:#0ea5a4;--radius:18px;
+      --shadow:0 12px 28px rgba(124,92,255,.14);
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,"Noto Sans TC",Arial}
-    .top{
-      position:sticky; top:0; z-index:10;
-      background:linear-gradient(180deg,#fff8ff,rgba(255,255,255,.8));
-      backdrop-filter:blur(6px);
-      border-bottom:1px solid var(--ring);
-    }
+    .top{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#fff8ff,rgba(255,255,255,.85));backdrop-filter:blur(6px);border-bottom:1px solid var(--ring)}
     .wrap{max-width:920px;margin:0 auto;padding:16px}
     .brand{display:flex;align-items:center;gap:10px}
-    .logo{
-      width:36px;height:36px;border-radius:12px;
-      background:linear-gradient(135deg,var(--primary),var(--accent));
-      box-shadow:0 6px 18px rgba(255,139,176,.25);
-      display:grid;place-items:center;color:#fff;font-weight:900
-    }
+    .logo{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--accent));display:grid;place-items:center;color:#fff;font-weight:900;box-shadow:0 6px 18px rgba(255,139,176,.25)}
     h1{font-size:20px;margin:0}
     .nav{margin-left:auto}
-    .nav a{
-      color:var(--primary); text-decoration:none; font-weight:700;
-      padding:8px 12px; border-radius:12px; background:var(--primary-weak);
-    }
-    .card{
-      background:var(--card); border-radius:var(--radius);
-      box-shadow:var(--shadow); padding:18px; margin:14px 0;
-      border:1px solid var(--ring);
-    }
+    .nav a{color:var(--primary);text-decoration:none;font-weight:800;background:var(--primary-weak);padding:8px 12px;border-radius:12px}
+    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin:14px 0;border:1px solid var(--ring)}
     label{display:block;font-size:14px;color:var(--muted);margin:6px 6px 6px 8px}
     input,select,textarea{
-      width:100%; padding:12px 14px; border:1.2px solid var(--ring);
-      border-radius:14px; font-size:16px; background:#fff; outline:none;
-      transition:border .15s, box-shadow .15s;
+      width:100%;padding:12px 14px;border:1.2px solid var(--ring);border-radius:14px;background:#fff;font-size:16px;outline:none;transition:border .15s, box-shadow .15s
     }
-    input:focus,select:focus,textarea:focus{border-color:var(--primary); box-shadow:0 0 0 4px var(--primary-weak)}
-    .row{display:grid; grid-template-columns:1fr 1fr; gap:12px}
-    @media (max-width:720px){ .row{grid-template-columns:1fr} }
-    textarea{min-height:120px; resize:vertical}
-    .btn{
-      appearance:none; border:none; cursor:pointer; border-radius:14px;
-      padding:12px 18px; font-weight:800; font-size:16px; width:100%;
-      background:linear-gradient(135deg,var(--primary),#9f86ff); color:#fff;
-      box-shadow:0 10px 20px rgba(124,92,255,.28); transition:transform .05s;
-    }
+    input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-weak)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:720px){.row{grid-template-columns:1fr}}
+    textarea{min-height:120px;resize:vertical}
+    .btn{appearance:none;border:none;cursor:pointer;border-radius:14px;padding:12px 18px;font-weight:800;font-size:16px;width:100%;background:linear-gradient(135deg,var(--primary),#9f86ff);color:#fff;box-shadow:0 10px 20px rgba(124,92,255,.28);transition:transform .05s}
     .btn:active{transform:translateY(1px)}
-    .ok{
-      display:none; margin-top:10px; padding:10px 12px; border-radius:12px;
-      background:#ecfdf5; color:#065f46; border:1px solid #d1fae5;
-    }
+    .ok{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;background:#ecfdf5;color:#065f46;border:1px solid #d1fae5}
     .hint{font-size:12px;color:var(--muted);margin:4px 8px 0}
     .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--primary-weak);color:var(--primary);font-weight:700;font-size:12px;margin-left:6px}
     .footer{font-size:12px;color:var(--muted);text-align:center;margin:18px 0}
@@ -76,9 +42,7 @@
   <div class="top">
     <div class="wrap" style="display:flex;align-items:center;gap:12px">
       <div class="logo">🩺</div>
-      <div class="brand">
-        <h1>臨床通報小幫手</h1><span class="pill">填報</span>
-      </div>
+      <div class="brand"><h1>臨床通報小幫手</h1><span class="pill">填報</span></div>
       <div class="nav"><a href="./view.html">查閱</a></div>
     </div>
   </div>
@@ -86,61 +50,34 @@
   <div class="wrap">
     <div class="card">
       <div class="row">
-        <div>
-          <label>通報日期</label>
-          <input id="reportDate" type="date">
-        </div>
-        <div>
-          <label>入院日</label>
-          <input id="admitDate" type="date">
-        </div>
+        <div><label>通報日期</label><input id="reportDate" type="date"></div>
+        <div><label>入院日</label><input id="admitDate" type="date"></div>
       </div>
 
       <div class="row">
-        <div>
-          <label>類別</label>
-          <select id="category"></select>
-        </div>
-        <div>
-          <label>傷害程度</label>
-          <select id="severity"></select>
-        </div>
+        <div><label>類別</label><select id="category"></select></div>
+        <div><label>傷害程度</label><select id="severity"></select></div>
       </div>
 
       <div class="row">
-        <div>
-          <label>病歷號</label>
-          <input id="chartNo" placeholder="">
-        </div>
-        <div>
-          <label>病人姓名</label>
-          <input id="name" placeholder="">
-        </div>
+        <div><label>病歷號</label><input id="chartNo" placeholder=""></div>
+        <div><label>病人姓名</label><input id="name" placeholder=""></div>
       </div>
 
       <div class="row">
-        <div>
-          <label>單位/床號</label>
-          <input id="bed" placeholder="2171-1">
-        </div>
+        <div><label>單位/床號</label><input id="bed" placeholder="2171-1"></div>
         <div>
           <label>主要因素</label>
           <select id="factor"></select>
-          <div class="hint">若下拉未載入，暫用：健康因素／環境因素／其他因素</div>
+          <div class="hint">若下拉未載入，暫用：健康因素／環境因素／藥物因素／其他因素</div>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <label>通報內容</label>
-      <textarea id="message" placeholder="請輸入…"></textarea>
-
-      <label>護理措施</label>
-      <textarea id="nursing" placeholder="請輸入…"></textarea>
-
-      <label>建議措施</label>
-      <textarea id="advice" placeholder="請輸入…"></textarea>
-
+      <label>通報內容</label><textarea id="message" placeholder="請輸入…"></textarea>
+      <label>護理措施</label><textarea id="nursing" placeholder="請輸入…"></textarea>
+      <label>建議措施</label><textarea id="advice" placeholder="請輸入…"></textarea>
       <button class="btn" id="sendBtn" onclick="submitForm()">送出</button>
       <div id="ok" class="ok">✅ 已送出成功，稍後可到「查閱」頁看到紀錄。</div>
     </div>
@@ -149,51 +86,68 @@
   </div>
 
   <script>
-    // 安全檢查
-    if (typeof GAS_URL === 'undefined'){
-      alert('未設定 GAS_URL，請到 config.js 放入 Apps Script 的 /exec 網址');
-    }
-
-    // 頁面載入：設今日日期、載入下拉
-    (function init(){
+    // 預設今日
+    (function(){
       const today = new Date().toISOString().slice(0,10);
-      document.getElementById('reportDate').value = today;
-      document.getElementById('admitDate').value  = today;
+      reportDate.value = today; admitDate.value = today;
       loadOptions();
     })();
 
-    <script>
-  // ── 下拉載入（含預設備援） ───────────────────────────────
-  async function loadOptions(){
-    try{
-      const res = await fetch(`${GAS_URL}?action=options`);
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      const data = await res.json();
-
-      const cats = (data.categories || []).filter(Boolean);
-      const sevs = (data.severities || []).filter(Boolean);
-      const facs = (data.factors || []).filter(Boolean);
-
-      // 後端若回空，提供備援選項，至少可以用
-      fillSelect('category', cats.length ? cats : ['跌倒','給藥','壓瘡','裝置','其他']);
-      fillSelect('severity', sevs.length ? sevs : ['無傷害','輕度','中度','重度','死亡']);
-      fillSelect('factor',   facs.length ? facs : ['健康因素','環境因素','其他因素']);
-
-    }catch(err){
-      console.warn('選單載入失敗：', err);
-      // 無法連到 GAS → 全部用預設，頁面依然可操作
-      fillSelect('category', ['跌倒','給藥','壓瘡','裝置','其他']);
-      fillSelect('severity', ['無傷害','輕度','中度','重度','死亡']);
-      fillSelect('factor',   ['健康因素','環境因素','其他因素']);
-      alert('無法載入選單，已使用預設項目。請稍後再試或檢查 GAS 權限/網址。');
+    // ★ 下拉載入（含預設備援）
+    async function loadOptions(){
+      try{
+        const r = await fetch(`${GAS_URL}?action=options`);
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        const data = await r.json();
+        const cats = (data.categories||[]).filter(Boolean);
+        const sevs = (data.severities||[]).filter(Boolean);
+        const facs = (data.factors||[]).filter(Boolean);
+        fillSelect('category', cats.length?cats:['跌倒','給藥','壓瘡','裝置','其他']);
+        fillSelect('severity', sevs.length?sevs:['跡近錯誤','無傷害','輕傷害','中傷害','重傷害','無法判定']);
+        fillSelect('factor',   facs.length?facs:['健康因素','環境因素','藥物因素','其他因素']);
+      }catch(e){
+        console.warn(e);
+        fillSelect('category',['跌倒','給藥','壓瘡','裝置','其他']);
+        fillSelect('severity',['跡近錯誤','無傷害','輕傷害','中傷害','重傷害','無法判定']);
+        fillSelect('factor',['健康因素','環境因素','藥物因素','其他因素']);
+        alert('無法載入選單，已使用預設項目。請稍後再試或檢查 GAS 設定。');
+      }
     }
-  }
+    function fillSelect(id, arr){
+      const s = document.getElementById(id);
+      s.innerHTML = '<option value="">請選擇</option>'+arr.map(v=>`<option value="${v}">${v}</option>`).join('');
+    }
 
-  function fillSelect(id, arr){
-    const sel = document.getElementById(id);
-    sel.innerHTML = '<option value="">請選擇</option>' +
-      arr.map(v=>`<option value="${v}">${v}</option>`).join('');
-  }
-</script>
+    // 送出
+    async function submitForm(){
+      const btn = document.getElementById('sendBtn');
+      const payload = {
+        action:'submit',
+        reportDate: reportDate.value,
+        admitDate:  admitDate.value,
+        category:   category.value,
+        severity:   severity.value,
+        chartNo:    chartNo.value.trim(),
+        name:       name.value.trim(),
+        bed:        bed.value.trim(),
+        factor:     factor.value,
+        message:    message.value.trim(),
+        nursing:    nursing.value.trim(),
+        advice:     advice.value.trim()
+      };
+      if(!payload.category || !payload.severity || !payload.message){
+        alert('請至少選「類別」「傷害程度」，並輸入「通報內容」'); return;
+      }
+      try{
+        btn.disabled=true; btn.textContent='送出中…';
+        const r = await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        const data = await r.json();
+        if(data.ok){ ok.style.display='block'; setTimeout(()=>location.href='./view.html',900); }
+        else{ throw new Error(data.error||'送出失敗'); }
+      }catch(e){
+        alert(e.message); btn.disabled=false; btn.textContent='送出';
+      }
+    }
+  </script>
 </body>
 </html>
