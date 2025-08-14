@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>臨床通報小幫手｜填報</title>
+  <style>
+    body{font-family:ui-sans-serif,system-ui,'Noto Sans TC',Arial;margin:0;background:#f7f7fb}
+    .container{max-width:720px;margin:0 auto;padding:16px}
+    .top{position:sticky;top:0;background:rgba(247,247,251,.9);backdrop-filter:blur(6px);border-bottom:1px solid #eee}
+    h1{font-size:20px;margin:0;padding:12px 16px}
+    .card{background:#fff;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:16px;margin:12px 0}
+    label{display:block;font-size:14px;color:#374151;margin:6px 2px}
+    input,select,textarea{width:100%;padding:12px 14px;border:1px solid #e5e7eb;border-radius:12px;font-size:16px;background:#fff}
+    textarea{min-height:120px}
+    .row{display:flex;gap:12px}
+    .row>*{flex:1}
+    .btn{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:700;font-size:16px;cursor:pointer}
+    .btn-primary{background:#4f46e5;color:#fff;width:100%}
+    .nav{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin:8px 0}
+    .nav a{text-decoration:none;font-weight:700;color:#4f46e5}
+    .ok{display:none;margin-top:10px;background:#ecfdf5;color:#065f46;padding:10px 12px;border-radius:12px}
+  </style>
+  <script src="./config.js"></script>
+</head>
+<body>
+  <div class="top"><h1>臨床通報小幫手｜填報</h1></div>
+  <div class="container">
+    <div class="nav"><a href="./view.html">查閱</a></div>
+
+    <div class="card">
+      <div class="row">
+        <div><label>通報日期</label><input id="reportDate" type="date"></div>
+        <div><label>入院日</label><input id="admitDate" type="date"></div>
+      </div>
+      <div class="row">
+        <div><label>類別</label><select id="category"></select></div>
+        <div><label>傷害程度</label><select id="severity"></select></div>
+      </div>
+      <div class="row">
+        <div><label>病歷號</label><input id="chartNo" placeholder=""></div>
+        <div><label>病人姓名</label><input id="name" placeholder=""></div>
+      </div>
+      <div class="row">
+        <div><label>單位/床號</label><input id="bed" placeholder="內科二病房 10-1"></div>
+        <div><label>主要因素</label><input id="factor" placeholder="例如：跌倒風險、給藥…"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <label>通報內容</label><textarea id="message" placeholder="請輸入…"></textarea>
+      <label>護理措施</label><textarea id="nursing" placeholder="請輸入…"></textarea>
+      <label>建議措施</label><textarea id="advice" placeholder="請輸入…"></textarea>
+      <button class="btn btn-primary" onclick="submitForm()">送出</button>
+      <div id="ok" class="ok">✅ 已送出，稍後可到「查閱」頁看到紀錄。</div>
+    </div>
+  </div>
+
+  <script>
+    // 載入下拉
+    async function loadOptions(){
+      const url = `${GAS_URL}?action=options`;
+      const res = await fetch(url);
+      const data = await res.json();
+      fillSelect('category', data.categories || []);
+      fillSelect('severity', data.severities || []);
+    }
+    function fillSelect(id, arr){
+      const sel = document.getElementById(id);
+      sel.innerHTML = '<option value="">請選擇</option>' + arr.map(v=>`<option>${v}</option>`).join('');
+    }
+
+    async function submitForm(){
+      const payload = {
+        action: 'submit',
+        reportDate: document.getElementById('reportDate').value,
+        admitDate:  document.getElementById('admitDate').value,
+        category:   document.getElementById('category').value,
+        severity:   document.getElementById('severity').value,
+        chartNo:    document.getElementById('chartNo').value.trim(),
+        name:       document.getElementById('name').value.trim(),
+        bed:        document.getElementById('bed').value.trim(),
+        factor:     document.getElementById('factor').value.trim(),
+        message:    document.getElementById('message').value.trim(),
+        nursing:    document.getElementById('nursing').value.trim(),
+        advice:     document.getElementById('advice').value.trim()
+      };
+      if (!payload.category || !payload.severity || !payload.message){
+        alert('請至少選「類別」「傷害程度」，並輸入「通報內容」');
+        return;
+      }
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.ok){
+        document.getElementById('ok').style.display='block';
+        setTimeout(()=>location.href='./view.html', 800);
+      } else {
+        alert('送出失敗：' + (data.error || ''));
+      }
+    }
+
+    loadOptions();
+  </script>
+</body>
+</html>
