@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>臨床通報小幫手｜填報</title>
 
-  <!-- 內嵌可愛 ICON（粉紫圓＋白色愛心），免檔案 -->
+  <!-- 內嵌可愛 ICON（粉紫圓＋白愛心）→ 分頁小圖示，不需外部檔案 -->
   <link rel="icon" sizes="32x32"
         href='data:image/svg+xml;utf8,
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
@@ -55,10 +55,13 @@
     .primary{background:#7c5cff;color:#fff;border:none;border-radius:14px;padding:12px 24px;font-weight:800;cursor:pointer}
     .primary:hover{filter:brightness(1.05)}
     @media (max-width: 860px){ .grid{grid-template-columns:1fr} }
+
+    /* 右下角版本號，幫你確認是否新檔 */
+    .ver{position:fixed;right:10px;bottom:8px;color:#a293c7;font-size:12px}
   </style>
 </head>
 <body>
-  <!-- 頂部導覽 -->
+  <!-- 頂部導覽（LOGO 也用內嵌 ICON，保證顯示） -->
   <div class="top">
     <div class="wrap" style="display:flex;align-items:center;gap:12px">
       <div class="brand">
@@ -141,6 +144,8 @@
     </div>
   </div>
 
+  <div class="ver">版本 v15</div>
+
   <script>
     if (typeof GAS_URL === 'undefined') {
       alert('config.js 未載入，請確認檔案與 GAS_URL 設定');
@@ -163,16 +168,16 @@
         const { ok, categories, severities, factors } = await r.json();
         if(!ok) throw new Error('載入選單失敗');
 
-        function fill(sel, arr){
-          const el = document.getElementById(sel);
-          el.innerHTML = arr.map(v=>`<option value="${v}">${v}</option>`).join('');
+        function fill(id, arr){
+          const el = document.getElementById(id);
+          el.innerHTML = (arr||[]).map(v=>`<option value="${v}">${v}</option>`).join('');
         }
-        fill('category', categories || []);
-        fill('severity', severities || []);
-        fill('factor', factors || []);
+        fill('category', categories);
+        fill('severity', severities);
+        fill('factor', factors);
       }catch(e){
-        alert('無法載入選單，請稍後重試');
         console.error(e);
+        alert('無法載入選單，請稍後重試');
       }
     }
 
@@ -202,7 +207,6 @@
         if(!res.ok) throw new Error(res.error || '送出失敗');
 
         alert('送出成功！');
-        // 清空文字欄，日期保留今天
         ['chartNo','name','bed','message','nursing','advice'].forEach(id=>document.getElementById(id).value='');
       }catch(e){
         console.error(e);
