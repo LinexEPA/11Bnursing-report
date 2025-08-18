@@ -5,11 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>臨床通報小幫手｜查閱</title>
 
-  <!-- Favicon -->
-  <link rel="icon" href="./assets/nurse-icon.png?v=12" type="image/png" sizes="32x32">
-  <link rel="apple-touch-icon" href="./assets/nurse-icon.png?v=12">
+  <!-- 內嵌可愛ICON（粉紫圓＋白色小愛心）→ 不需要外部檔案 -->
+  <link rel="icon" sizes="32x32"
+        href='data:image/svg+xml;utf8,
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#f5e8ff"/>
+      <stop offset="100%" stop-color="#c9b6ff"/>
+    </radialGradient>
+  </defs>
+  <circle cx="128" cy="128" r="120" fill="url(#g)"/>
+  <path d="M128 174c-20-15-56-37-56-67 0-17 12-30 28-30 11 0 20 6 28 16 8-10 17-16 28-16 16 0 28 13 28 30 0 30-36 52-56 67z"
+        fill="#fff"/>
+</svg>' />
 
-  <!-- 讀取 GAS_URL -->
   <script src="./config.js"></script>
 
   <style>
@@ -17,11 +27,12 @@
       --bg:#faf7ff;--card:#fff;--ink:#2f2a3b;--muted:#6b6280;
       --primary:#7c5cff;--primary-weak:#efeaff;--ring:#e9e2ff;
       --shadow:0 12px 28px rgba(124,92,255,.14);--radius:18px;
-      --tableHeightOffset: 220px; /* 表格容器高度扣除(可依實際頁首調整) */
+      --tableHeightOffset: 220px; /* 視窗高扣除（視需要微調） */
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,"Noto Sans TC",Arial}
-    /* 頁首 */
+
+    /* 頁首（含LOGO） */
     .top{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#fff8ff,rgba(255,255,255,.85));backdrop-filter:blur(6px);border-bottom:1px solid var(--ring)}
     .wrap{max-width:1200px;margin:0 auto;padding:12px 16px}
     .brand{display:flex;align-items:center;gap:10px}
@@ -37,31 +48,49 @@
     input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-weak)}
     .spacer{flex:1}
 
-    /* 表格容器：可滾動，表頭 sticky: top:0 */
+    /* 表格容器：可滾動，表頭 sticky */
     .table-wrap{
       background:var(--card);border:1px solid var(--ring);border-radius:var(--radius);
       box-shadow:var(--shadow);overflow:auto;
       max-height: calc(100vh - var(--tableHeightOffset));
     }
-    table{width:100%;border-collapse:separate;border-spacing:0;min-width:1100px}
+
+    /* 讓欄寬生效與換行友善 */
+    table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;min-width:1200px}
     thead th{
-      position:sticky; top:0; z-index:5;  /* ★ 固定表頭 */
+      position:sticky; top:0; z-index:5;
       background:#f7f4ff; color:var(--muted); font-size:12px;
-      text-align:left; padding:12px; border-bottom:1px solid var(--ring); white-space:nowrap;
+      text-align:left; padding:10px 12px; border-bottom:1px solid var(--ring); white-space:nowrap;
       box-shadow:0 2px 0 #ece6ff;
     }
-    tbody td{padding:12px;border-bottom:1px solid #f2ecff;vertical-align:top;font-size:14px;background:#fff}
+    tbody td{
+      padding:10px 12px;border-bottom:1px solid #f2ecff;vertical-align:top;font-size:14px;background:#fff;
+      word-wrap:break-word;overflow-wrap:anywhere;
+    }
+    /* 三個長文欄位：字體略小、行距略緊，提升資訊密度 */
+    td.long{font-size:13px;line-height:1.45}
     tbody tr:nth-child(odd) td{background:#fefcff}
     tbody tr:hover td{background:#fbf7ff}
-    .pre{white-space:pre-wrap; word-break:break-word}
   </style>
 </head>
 <body>
-  <!-- 頂部導覽 -->
+  <!-- 頂部導覽（LOGO 用同一顆內嵌ICON） -->
   <div class="top">
     <div class="wrap" style="display:flex;align-items:center;gap:12px">
       <div class="brand">
-        <img src="./assets/nurse-icon.png?v=12" alt="App Icon">
+        <img alt="App Icon"
+             src='data:image/svg+xml;utf8,
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#f5e8ff"/>
+      <stop offset="100%" stop-color="#c9b6ff"/>
+    </radialGradient>
+  </defs>
+  <circle cx="128" cy="128" r="120" fill="url(#g)"/>
+  <path d="M128 174c-20-15-56-37-56-67 0-17 12-30 28-30 11 0 20 6 28 16 8-10 17-16 28-16 16 0 28 13 28 30 0 30-36 52-56 67z"
+        fill="#fff"/>
+</svg>'>
         <span>臨床通報小幫手</span>
       </div>
       <div class="nav">
@@ -84,9 +113,23 @@
       <a id="sheet" target="_blank" style="text-decoration:none;color:#7c5cff;font-weight:800">前往試算表 ↗</a>
     </div>
 
-    <!-- 表格 -->
+    <!-- 表格（使用 colgroup 控制欄寬：左側資訊窄、右側三欄加寬） -->
     <div class="table-wrap">
       <table id="tbl">
+        <colgroup>
+          <col style="width:110px"><!-- 通報日期 -->
+          <col style="width:90px"><!-- 類別 -->
+          <col style="width:95px"><!-- 傷害程度 -->
+          <col style="width:110px"><!-- 病歷號 -->
+          <col style="width:100px"><!-- 病人姓名 -->
+          <col style="width:110px"><!-- 入院日 -->
+          <col style="width:88px"><!-- 住院天數 -->
+          <col style="width:120px"><!-- 單位/床號（自由文字） -->
+          <col style="width:100px"><!-- 主要因素 -->
+          <col style="width:420px"><!-- 通報內容（拉寬） -->
+          <col style="width:320px"><!-- 護理措施（拉寬） -->
+          <col style="width:300px"><!-- 建議措施（拉寬） -->
+        </colgroup>
         <thead>
           <tr>
             <th>通報日期</th>
@@ -113,7 +156,7 @@
       alert('config.js 未載入，請確認檔案與 GAS_URL 設定');
     }
 
-    // 欄位固定順序，避免表頭和資料錯位
+    // 固定欄位順序，避免表頭與資料錯位
     const COLS = [
       '通報日期','類別','傷害程度','病歷號','病人姓名',
       '入院日','住院天數','單位/床號','主要因素',
@@ -167,8 +210,9 @@
           const tds = COLS.map(key=>{
             let v = row[key] ?? '';
             if (key==='通報日期' || key==='入院日') v = toDateString(v);
-            const cls = (key==='通報內容'||key==='護理措施'||key==='建議措施') ? 'pre' : '';
-            return `<td class="${cls}">${v}</td>`;
+            // 三欄長文加上 .long
+            const longCols = (key==='通報內容'||key==='護理措施'||key==='建議措施');
+            return `<td class="${longCols?'long':''}">${v}</td>`;
           }).join('');
           tb.insertAdjacentHTML('beforeend', `<tr>${tds}</tr>`);
         });
@@ -178,7 +222,6 @@
       }
     }
 
-    // 初次載入
     document.addEventListener('DOMContentLoaded', load);
   </script>
 </body>
