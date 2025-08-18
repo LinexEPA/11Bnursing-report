@@ -1,31 +1,43 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>臨床通報小幫手｜查閱</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="./assets/nurse-icon.png?v=12" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="./assets/nurse-icon.png?v=12">
+
+  <!-- 讀取 GAS_URL -->
   <script src="./config.js"></script>
+
   <style>
     :root{
       --bg:#faf7ff;--card:#fff;--ink:#2f2a3b;--muted:#6b6280;
       --primary:#7c5cff;--primary-weak:#efeaff;--ring:#e9e2ff;
       --shadow:0 12px 28px rgba(124,92,255,.14);--radius:18px;
-      /* 表格容器的高度：頁面可視高 - 頂部區塊預留(可依需要微調) */
-      --tableHeightOffset: 220px;
+      --tableHeightOffset: 220px; /* 表格容器高度扣除(可依實際頁首調整) */
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,"Noto Sans TC",Arial}
+    /* 頁首 */
     .top{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#fff8ff,rgba(255,255,255,.85));backdrop-filter:blur(6px);border-bottom:1px solid var(--ring)}
-    .wrap{max-width:1200px;margin:0 auto;padding:16px}
-    h1{font-size:24px;margin:0;display:flex;align-items:center;gap:10px}
-    .nav{margin-left:auto}
-    .nav a{color:var(--primary);text-decoration:none;font-weight:800;background:var(--primary-weak);padding:8px 12px;border-radius:12px}
+    .wrap{max-width:1200px;margin:0 auto;padding:12px 16px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand img{width:36px;height:36px;border-radius:10px;object-fit:cover;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+    .brand span{font-weight:800;font-size:20px;color:#2f2a3b}
+    .nav{margin-left:auto;display:flex;gap:8px}
+    .btn{text-decoration:none;background:#efeaff;color:#7c5cff;padding:8px 12px;border-radius:12px;font-weight:800;border:1px solid #efeaff}
+    .btn.ghost{background:#fff;border-color:#e9e2ff}
+
+    /* 控制列 */
     .controls{display:flex;gap:10px;align-items:center;margin:12px 0;flex-wrap:wrap}
     input,select{padding:10px 12px;border:1.2px solid var(--ring);border-radius:12px;outline:none;background:#fff}
     input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-weak)}
     .spacer{flex:1}
 
-    /* 表格外面包一層可滾動容器 → thead 可用 top:0 黏在最上面 */
+    /* 表格容器：可滾動，表頭 sticky: top:0 */
     .table-wrap{
       background:var(--card);border:1px solid var(--ring);border-radius:var(--radius);
       box-shadow:var(--shadow);overflow:auto;
@@ -33,10 +45,10 @@
     }
     table{width:100%;border-collapse:separate;border-spacing:0;min-width:1100px}
     thead th{
-      position:sticky; top:0; z-index:5;               /* ★ 固定表頭 */
+      position:sticky; top:0; z-index:5;  /* ★ 固定表頭 */
       background:#f7f4ff; color:var(--muted); font-size:12px;
       text-align:left; padding:12px; border-bottom:1px solid var(--ring); white-space:nowrap;
-      box-shadow:0 2px 0 #ece6ff;                      /* 分隔陰影，避免蓋到資料 */
+      box-shadow:0 2px 0 #ece6ff;
     }
     tbody td{padding:12px;border-bottom:1px solid #f2ecff;vertical-align:top;font-size:14px;background:#fff}
     tbody tr:nth-child(odd) td{background:#fefcff}
@@ -45,15 +57,22 @@
   </style>
 </head>
 <body>
+  <!-- 頂部導覽 -->
   <div class="top">
     <div class="wrap" style="display:flex;align-items:center;gap:12px">
-      <h1>📋 臨床通報小幫手</h1>
-      <div class="spacer"></div>
-      <div class="nav"><a href="./index.html">填報</a></div>
+      <div class="brand">
+        <img src="./assets/nurse-icon.png?v=12" alt="App Icon">
+        <span>臨床通報小幫手</span>
+      </div>
+      <div class="nav">
+        <a class="btn" href="./index.html">填報</a>
+        <a class="btn ghost" href="./view.html">查閱</a>
+      </div>
     </div>
   </div>
 
   <div class="wrap">
+    <!-- 控制列 -->
     <div class="controls">
       <input id="q" placeholder="搜尋關鍵字（人名、單位、內容…）" oninput="load()">
       <select id="limit" onchange="load()">
@@ -62,9 +81,10 @@
         <option value="100">最近 100 筆</option>
       </select>
       <div class="spacer"></div>
-      <a id="sheet" target="_blank" style="text-decoration:none;color:var(--primary);font-weight:800">前往試算表 ↗</a>
+      <a id="sheet" target="_blank" style="text-decoration:none;color:#7c5cff;font-weight:800">前往試算表 ↗</a>
     </div>
 
+    <!-- 表格 -->
     <div class="table-wrap">
       <table id="tbl">
         <thead>
@@ -83,42 +103,42 @@
             <th>建議措施</th>
           </tr>
         </thead>
-        <tbody></tbody>  <!-- 只把資料塞進 tbody，表頭永遠不動 -->
+        <tbody></tbody>
       </table>
     </div>
   </div>
 
   <script>
-    if (typeof GAS_URL==='undefined'){ alert('config.js 未載入'); }
+    if (typeof GAS_URL === 'undefined') {
+      alert('config.js 未載入，請確認檔案與 GAS_URL 設定');
+    }
 
-    // 固定欄位順序，防止對不上頭
+    // 欄位固定順序，避免表頭和資料錯位
     const COLS = [
       '通報日期','類別','傷害程度','病歷號','病人姓名',
       '入院日','住院天數','單位/床號','主要因素',
       '通報內容','護理措施','建議措施'
     ];
 
-    // 只顯示日期（yyyy/MM/dd），不帶時間
+    // 轉 yyyy/MM/dd（只要日期不要時間）
     function toDateString(v){
       if (!v) return '';
       const s = String(v);
-      // 若是 2025-08-14T... → 取前 10 碼
-      const first10 = s.length>=10 ? s.slice(0,10) : s;
-      // yyyy-MM-dd / yyyy/MM/dd
+      const first10 = s.length >= 10 ? s.slice(0,10) : s;   // 例如 2025-08-14
       let m = /^(\d{4})[-/](\d{2})[-/](\d{2})$/.exec(first10);
       if (m){
         const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
-        const y = d.getFullYear(), mm = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+        const y=d.getFullYear(), mm=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
         return `${y}/${mm}/${dd}`;
       }
       const d2 = new Date(s);
       if (!isNaN(d2)){
-        const y = d2.getFullYear(), mm = String(d2.getMonth()+1).padStart(2,'0'), dd = String(d2.getDate()).padStart(2,'0');
+        const y=d2.getFullYear(), mm=String(d2.getMonth()+1).padStart(2,'0'), dd=String(d2.getDate()).padStart(2,'0');
         return `${y}/${mm}/${dd}`;
       }
       return s;
     }
-    // 排序用（由新到舊）
+    // 排序用：由新到舊
     function toTime(v){
       const s = toDateString(v);
       const m = /^(\d{4})\/(\d{2})\/(\d{2})$/.exec(s);
@@ -133,14 +153,14 @@
         u.searchParams.set('limit', document.getElementById('limit').value);
         u.searchParams.set('query', document.getElementById('q').value.trim());
         const r = await fetch(u,{cache:'no-store'});
-        const { ok, rows, sheetUrl } = await r.json();
-        if(!ok) throw new Error('API 回傳失敗');
+        const { ok, rows, sheetUrl, error } = await r.json();
+        if(!ok) throw new Error(error || 'API 回傳失敗');
         document.getElementById('sheet').href = sheetUrl;
 
-        // 依「通報日期」由新到舊排序（表頭不變）
+        // 依通報日期由新到舊
         const sorted = (rows||[]).slice().sort((a,b)=> toTime(b['通報日期']) - toTime(a['通報日期']));
 
-        // 渲染資料到 tbody
+        // 渲染
         const tb = document.querySelector('#tbl tbody');
         tb.innerHTML = '';
         sorted.forEach(row=>{
@@ -154,11 +174,12 @@
         });
       }catch(e){
         console.error(e);
-        alert('載入失敗，請檢查 GAS_URL / 權限');
+        alert('載入失敗：' + e.message);
       }
     }
 
-    load();
+    // 初次載入
+    document.addEventListener('DOMContentLoaded', load);
   </script>
 </body>
 </html>
