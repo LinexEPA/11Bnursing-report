@@ -10,11 +10,9 @@
       --bg:#faf7ff;--card:#fff;--ink:#2f2a3b;--muted:#6b6280;
       --primary:#7c5cff;--primary-weak:#efeaff;--ring:#e9e2ff;
       --shadow:0 12px 28px rgba(124,92,255,.14);--radius:18px;
-      /* 根據你的頁首＋控制列高度，必要時可微調這個數字 */
-      --stickyTop: 140px;
+      /* 表格容器的高度：頁面可視高 - 頂部區塊預留(可依需要微調) */
+      --tableHeightOffset: 220px;
     }
-    @media (max-width: 720px){ :root{ --stickyTop: 120px; } }
-
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,"Noto Sans TC",Arial}
     .top{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#fff8ff,rgba(255,255,255,.85));backdrop-filter:blur(6px);border-bottom:1px solid var(--ring)}
@@ -26,16 +24,24 @@
     input,select{padding:10px 12px;border:1.2px solid var(--ring);border-radius:12px;outline:none;background:#fff}
     input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-weak)}
     .spacer{flex:1}
-    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--ring)}
-    table{width:100%;border-collapse:separate;border-spacing:0}
+
+    /* 表格外面包一層可滾動容器 → thead 可用 top:0 黏在最上面 */
+    .table-wrap{
+      background:var(--card);border:1px solid var(--ring);border-radius:var(--radius);
+      box-shadow:var(--shadow);overflow:auto;
+      max-height: calc(100vh - var(--tableHeightOffset));
+    }
+    table{width:100%;border-collapse:separate;border-spacing:0;min-width:1100px}
     thead th{
-      position:sticky; top:var(--stickyTop); z-index:10;
+      position:sticky; top:0; z-index:5;               /* ★ 固定表頭 */
       background:#f7f4ff; color:var(--muted); font-size:12px;
       text-align:left; padding:12px; border-bottom:1px solid var(--ring); white-space:nowrap;
+      box-shadow:0 2px 0 #ece6ff;                      /* 分隔陰影，避免蓋到資料 */
     }
     tbody td{padding:12px;border-bottom:1px solid #f2ecff;vertical-align:top;font-size:14px;background:#fff}
     tbody tr:nth-child(odd) td{background:#fefcff}
     tbody tr:hover td{background:#fbf7ff}
+    .pre{white-space:pre-wrap; word-break:break-word}
   </style>
 </head>
 <body>
@@ -59,9 +65,8 @@
       <a id="sheet" target="_blank" style="text-decoration:none;color:var(--primary);font-weight:800">前往試算表 ↗</a>
     </div>
 
-    <div class="card">
+    <div class="table-wrap">
       <table id="tbl">
-        <!-- 表頭固定寫在 thead：永遠第一列，不會被資料影響 -->
         <thead>
           <tr>
             <th>通報日期</th>
@@ -78,7 +83,7 @@
             <th>建議措施</th>
           </tr>
         </thead>
-        <tbody></tbody> <!-- 只把資料塞進 tbody -->
+        <tbody></tbody>  <!-- 只把資料塞進 tbody，表頭永遠不動 -->
       </table>
     </div>
   </div>
@@ -86,42 +91,36 @@
   <script>
     if (typeof GAS_URL==='undefined'){ alert('config.js 未載入'); }
 
-    // 欄位對應（固定順序，避免表頭與資料錯位）
+    // 固定欄位順序，防止對不上頭
     const COLS = [
       '通報日期','類別','傷害程度','病歷號','病人姓名',
       '入院日','住院天數','單位/床號','主要因素',
       '通報內容','護理措施','建議措施'
     ];
 
-    // 將任何格式的日期 → yyyy/MM/dd（只要日期，不要時間）
+    // 只顯示日期（yyyy/MM/dd），不帶時間
     function toDateString(v){
       if (!v) return '';
-      // 如果是 "2025-08-14T00:00:00.000Z" → 先取前 10 碼
       const s = String(v);
-      const iso = s.length >= 10 ? s.slice(0,10) : s;
-      // 允許 "yyyy-MM-dd" / "yyyy/MM/dd"
-      const m = /^(\d{4})[-/](\d{2})[-/](\d{2})$/.exec(iso);
+      // 若是 2025-08-14T... → 取前 10 碼
+      const first10 = s.length>=10 ? s.slice(0,10) : s;
+      // yyyy-MM-dd / yyyy/MM/dd
+      let m = /^(\d{4})[-/](\d{2})[-/](\d{2})$/.exec(first10);
       if (m){
         const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
-        const y = d.getFullYear();
-        const mm = String(d.getMonth()+1).padStart(2,'0');
-        const dd = String(d.getDate()).padStart(2,'0');
+        const y = d.getFullYear(), mm = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
         return `${y}/${mm}/${dd}`;
       }
-      // 如果是 Date 物件
       const d2 = new Date(s);
-      if (!isNaN(d2)) {
-        const y = d2.getFullYear();
-        const mm = String(d2.getMonth()+1).padStart(2,'0');
-        const dd = String(d2.getDate()).padStart(2,'0');
+      if (!isNaN(d2)){
+        const y = d2.getFullYear(), mm = String(d2.getMonth()+1).padStart(2,'0'), dd = String(d2.getDate()).padStart(2,'0');
         return `${y}/${mm}/${dd}`;
       }
-      return s; // 其他情況就原樣回傳
+      return s;
     }
-
-    // 排序用：把字串轉成時間戳
+    // 排序用（由新到舊）
     function toTime(v){
-      const s = toDateString(v); // e.g. 2025/08/14
+      const s = toDateString(v);
       const m = /^(\d{4})\/(\d{2})\/(\d{2})$/.exec(s);
       if (m) return new Date(Number(m[1]), Number(m[2])-1, Number(m[3])).getTime();
       const d = new Date(v); return isNaN(d)?0:d.getTime();
@@ -138,17 +137,18 @@
         if(!ok) throw new Error('API 回傳失敗');
         document.getElementById('sheet').href = sheetUrl;
 
-        // 先把資料按「通報日期」由新到舊排序（不影響表頭）
+        // 依「通報日期」由新到舊排序（表頭不變）
         const sorted = (rows||[]).slice().sort((a,b)=> toTime(b['通報日期']) - toTime(a['通報日期']));
 
-        // 塞進 tbody（表頭保持不動）
+        // 渲染資料到 tbody
         const tb = document.querySelector('#tbl tbody');
         tb.innerHTML = '';
         sorted.forEach(row=>{
           const tds = COLS.map(key=>{
             let v = row[key] ?? '';
-            if (key==='通報日期' || key==='入院日') v = toDateString(v); // 只顯示日期
-            return `<td>${v}</td>`;
+            if (key==='通報日期' || key==='入院日') v = toDateString(v);
+            const cls = (key==='通報內容'||key==='護理措施'||key==='建議措施') ? 'pre' : '';
+            return `<td class="${cls}">${v}</td>`;
           }).join('');
           tb.insertAdjacentHTML('beforeend', `<tr>${tds}</tr>`);
         });
@@ -158,7 +158,6 @@
       }
     }
 
-    // 初次載入
     load();
   </script>
 </body>
