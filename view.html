@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>臨床通報小幫手｜查閱</title>
 
-  <!-- 內嵌可愛ICON（粉紫圓＋白色小愛心）→ 不需要外部檔案 -->
+  <!-- 內嵌可愛 ICON（粉紫圓＋白色愛心），免檔案 -->
   <link rel="icon" sizes="32x32"
         href='data:image/svg+xml;utf8,
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
@@ -16,8 +16,7 @@
     </radialGradient>
   </defs>
   <circle cx="128" cy="128" r="120" fill="url(#g)"/>
-  <path d="M128 174c-20-15-56-37-56-67 0-17 12-30 28-30 11 0 20 6 28 16 8-10 17-16 28-16 16 0 28 13 28 30 0 30-36 52-56 67z"
-        fill="#fff"/>
+  <path d="M128 174c-20-15-56-37-56-67 0-17 12-30 28-30 11 0 20 6 28 16 8-10 17-16 28-16 16 0 28 13 28 30 0 30-36 52-56 67z" fill="#fff"/>
 </svg>' />
 
   <script src="./config.js"></script>
@@ -32,7 +31,7 @@
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,"Noto Sans TC",Arial}
 
-    /* 頁首（含LOGO） */
+    /* 頁首 */
     .top{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#fff8ff,rgba(255,255,255,.85));backdrop-filter:blur(6px);border-bottom:1px solid var(--ring)}
     .wrap{max-width:1200px;margin:0 auto;padding:12px 16px}
     .brand{display:flex;align-items:center;gap:10px}
@@ -48,14 +47,14 @@
     input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-weak)}
     .spacer{flex:1}
 
-    /* 表格容器：可滾動，表頭 sticky */
+    /* 表格容器（可滾動），表頭 sticky */
     .table-wrap{
       background:var(--card);border:1px solid var(--ring);border-radius:var(--radius);
       box-shadow:var(--shadow);overflow:auto;
       max-height: calc(100vh - var(--tableHeightOffset));
     }
 
-    /* 讓欄寬生效與換行友善 */
+    /* 固定欄寬與換行友善 */
     table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;min-width:1200px}
     thead th{
       position:sticky; top:0; z-index:5;
@@ -67,14 +66,13 @@
       padding:10px 12px;border-bottom:1px solid #f2ecff;vertical-align:top;font-size:14px;background:#fff;
       word-wrap:break-word;overflow-wrap:anywhere;
     }
-    /* 三個長文欄位：字體略小、行距略緊，提升資訊密度 */
-    td.long{font-size:13px;line-height:1.45}
+    td.long{font-size:13px;line-height:1.45} /* 長文欄位較小字、緊湊行距 */
     tbody tr:nth-child(odd) td{background:#fefcff}
     tbody tr:hover td{background:#fbf7ff}
   </style>
 </head>
 <body>
-  <!-- 頂部導覽（LOGO 用同一顆內嵌ICON） -->
+  <!-- 頂部導覽 -->
   <div class="top">
     <div class="wrap" style="display:flex;align-items:center;gap:12px">
       <div class="brand">
@@ -88,8 +86,7 @@
     </radialGradient>
   </defs>
   <circle cx="128" cy="128" r="120" fill="url(#g)"/>
-  <path d="M128 174c-20-15-56-37-56-67 0-17 12-30 28-30 11 0 20 6 28 16 8-10 17-16 28-16 16 0 28 13 28 30 0 30-36 52-56 67z"
-        fill="#fff"/>
+  <path d="M128 174c-20-15-56-37-56-67 0-17 12-30 28-30 11 0 20 6 28 16 8-10 17-16 28-16 16 0 28 13 28 30 0 30-36 52-56 67z" fill="#fff"/>
 </svg>'>
         <span>臨床通報小幫手</span>
       </div>
@@ -101,7 +98,6 @@
   </div>
 
   <div class="wrap">
-    <!-- 控制列 -->
     <div class="controls">
       <input id="q" placeholder="搜尋關鍵字（人名、單位、內容…）" oninput="load()">
       <select id="limit" onchange="load()">
@@ -113,7 +109,7 @@
       <a id="sheet" target="_blank" style="text-decoration:none;color:#7c5cff;font-weight:800">前往試算表 ↗</a>
     </div>
 
-    <!-- 表格（使用 colgroup 控制欄寬：左側資訊窄、右側三欄加寬） -->
+    <!-- colgroup 控制欄寬：左側資訊窄；右側三欄加寬 -->
     <div class="table-wrap">
       <table id="tbl">
         <colgroup>
@@ -156,36 +152,33 @@
       alert('config.js 未載入，請確認檔案與 GAS_URL 設定');
     }
 
-    // 固定欄位順序，避免表頭與資料錯位
     const COLS = [
       '通報日期','類別','傷害程度','病歷號','病人姓名',
       '入院日','住院天數','單位/床號','主要因素',
       '通報內容','護理措施','建議措施'
     ];
 
-    // 轉 yyyy/MM/dd（只要日期不要時間）
     function toDateString(v){
       if (!v) return '';
       const s = String(v);
-      const first10 = s.length >= 10 ? s.slice(0,10) : s;   // 例如 2025-08-14
+      const first10 = s.length >= 10 ? s.slice(0,10) : s;
       let m = /^(\d{4})[-/](\d{2})[-/](\d{2})$/.exec(first10);
       if (m){
-        const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+        const d = new Date(+m[1], +m[2]-1, +m[3]);
         const y=d.getFullYear(), mm=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
         return `${y}/${mm}/${dd}`;
       }
       const d2 = new Date(s);
-      if (!isNaN(d2)){
+      if (!isNaN(d2)) {
         const y=d2.getFullYear(), mm=String(d2.getMonth()+1).padStart(2,'0'), dd=String(d2.getDate()).padStart(2,'0');
         return `${y}/${mm}/${dd}`;
       }
       return s;
     }
-    // 排序用：由新到舊
     function toTime(v){
       const s = toDateString(v);
       const m = /^(\d{4})\/(\d{2})\/(\d{2})$/.exec(s);
-      if (m) return new Date(Number(m[1]), Number(m[2])-1, Number(m[3])).getTime();
+      if (m) return new Date(+m[1], +m[2]-1, +m[3]).getTime();
       const d = new Date(v); return isNaN(d)?0:d.getTime();
     }
 
@@ -200,19 +193,17 @@
         if(!ok) throw new Error(error || 'API 回傳失敗');
         document.getElementById('sheet').href = sheetUrl;
 
-        // 依通報日期由新到舊
+        // 由新到舊
         const sorted = (rows||[]).slice().sort((a,b)=> toTime(b['通報日期']) - toTime(a['通報日期']));
 
-        // 渲染
         const tb = document.querySelector('#tbl tbody');
         tb.innerHTML = '';
         sorted.forEach(row=>{
           const tds = COLS.map(key=>{
             let v = row[key] ?? '';
             if (key==='通報日期' || key==='入院日') v = toDateString(v);
-            // 三欄長文加上 .long
-            const longCols = (key==='通報內容'||key==='護理措施'||key==='建議措施');
-            return `<td class="${longCols?'long':''}">${v}</td>`;
+            const long = (key==='通報內容'||key==='護理措施'||key==='建議措施') ? 'long' : '';
+            return `<td class="${long}">${v}</td>`;
           }).join('');
           tb.insertAdjacentHTML('beforeend', `<tr>${tds}</tr>`);
         });
@@ -221,7 +212,6 @@
         alert('載入失敗：' + e.message);
       }
     }
-
     document.addEventListener('DOMContentLoaded', load);
   </script>
 </body>
