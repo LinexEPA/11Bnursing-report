@@ -1,57 +1,218 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>臨床通報小幫手 - 首頁</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>臨床通報小幫手｜填報</title>
 
-  <!-- Favicon -->
-  <link rel="icon" href="./assets/nurse-icon.png?v=12" type="image/png" sizes="32x32">
-  <link rel="apple-touch-icon" href="./assets/nurse-icon.png?v=12">
+  <!-- 內嵌可愛 ICON（粉紫圓＋白色愛心），免檔案 -->
+  <link rel="icon" sizes="32x32"
+        href='data:image/svg+xml;utf8,
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#f5e8ff"/>
+      <stop offset="100%" stop-color="#c9b6ff"/>
+    </radialGradient>
+  </defs>
+  <circle cx="128" cy="128" r="120" fill="url(#g)"/>
+  <path d="M128 174c-20-15-56-37-56-67 0-17 12-30 28-30 11 0 20 6 28 16 8-10 17-16 28-16 16 0 28 13 28 30 0 30-36 52-56 67z" fill="#fff"/>
+</svg>' />
+
+  <script src="./config.js"></script>
 
   <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #fdfdfd;
+    :root{
+      --bg:#faf7ff;--card:#fff;--ink:#2f2a3b;--muted:#6b6280;
+      --primary:#7c5cff;--primary-weak:#efeaff;--ring:#e9e2ff;
+      --shadow:0 12px 28px rgba(124,92,255,.14);--radius:18px;
+      --field:#ffffff;
     }
-    header {
-      background: #fff;
-      padding: 12px 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,"Noto Sans TC",Arial}
+
+    /* 頁首 */
+    .top{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#fff8ff,rgba(255,255,255,.85));backdrop-filter:blur(6px);border-bottom:1px solid var(--ring)}
+    .wrap{max-width:1200px;margin:0 auto;padding:12px 16px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand img{width:36px;height:36px;border-radius:10px;object-fit:cover;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+    .brand span{font-weight:800;font-size:20px;color:#2f2a3b}
+    .nav{margin-left:auto;display:flex;gap:8px}
+    .btn{text-decoration:none;background:#efeaff;color:#7c5cff;padding:8px 12px;border-radius:12px;font-weight:800;border:1px solid #efeaff}
+    .btn.ghost{background:#fff;border-color:#e9e2ff}
+
+    /* 表單卡片 */
+    .card{background:var(--card);border:1px solid var(--ring);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-top:16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    label{font-size:13px;color:#6b6280}
+    input,select,textarea{
+      padding:10px 12px;border:1.2px solid var(--ring);border-radius:12px;background:var(--field);outline:none;
     }
-    header img {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      object-fit: cover;
-      box-shadow: 0 2px 6px rgba(0,0,0,.12);
-    }
-    header span {
-      font-weight: 800;
-      font-size: 20px;
-      color: #2f2a3b;
-    }
-    main {
-      padding: 20px;
-    }
+    input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-weak)}
+    textarea{min-height:120px;resize:vertical}
+    .actions{display:flex;justify-content:center;margin-top:16px}
+    .primary{background:#7c5cff;color:#fff;border:none;border-radius:14px;padding:12px 24px;font-weight:800;cursor:pointer}
+    .primary:hover{filter:brightness(1.05)}
+    @media (max-width: 860px){ .grid{grid-template-columns:1fr} }
   </style>
 </head>
 <body>
-  <header>
-    <img src="./assets/nurse-icon.png?v=12" alt="App Icon">
-    <span>臨床通報小幫手</span>
-  </header>
-  <main>
-    <h2>歡迎使用</h2>
-    <p>請點選選單進入功能頁面。</p>
-    <ul>
-      <li><a href="view.html">查看報告</a></li>
-    </ul>
-  </main>
+  <!-- 頂部導覽 -->
+  <div class="top">
+    <div class="wrap" style="display:flex;align-items:center;gap:12px">
+      <div class="brand">
+        <img alt="App Icon"
+             src='data:image/svg+xml;utf8,
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#f5e8ff"/>
+      <stop offset="100%" stop-color="#c9b6ff"/>
+    </radialGradient>
+  </defs>
+  <circle cx="128" cy="128" r="120" fill="url(#g)"/>
+  <path d="M128 174c-20-15-56-37-56-67 0-17 12-30 28-30 11 0 20 6 28 16 8-10 17-16 28-16 16 0 28 13 28 30 0 30-36 52-56 67z" fill="#fff"/>
+</svg>'>
+        <span>臨床通報小幫手</span>
+      </div>
+      <div class="nav">
+        <a class="btn ghost" href="./view.html">查閱</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="grid">
+        <div class="field">
+          <label>通報日期</label>
+          <input id="reportDate" type="date">
+        </div>
+        <div class="field">
+          <label>入院日</label>
+          <input id="admitDate" type="date">
+        </div>
+
+        <div class="field">
+          <label>類別</label>
+          <select id="category"></select>
+        </div>
+        <div class="field">
+          <label>傷害程度</label>
+          <select id="severity"></select>
+        </div>
+
+        <div class="field">
+          <label>病歷號</label>
+          <input id="chartNo" placeholder="">
+        </div>
+        <div class="field">
+          <label>病人姓名</label>
+          <input id="name" placeholder="">
+        </div>
+
+        <div class="field">
+          <label>單位/床號</label>
+          <input id="bed" placeholder="2171-1">
+        </div>
+        <div class="field">
+          <label>主要因素</label>
+          <select id="factor"></select>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:12px">
+        <label>通報內容</label>
+        <textarea id="message" placeholder="請輸入…"></textarea>
+      </div>
+      <div class="field">
+        <label>護理措施</label>
+        <textarea id="nursing" placeholder="請輸入…"></textarea>
+      </div>
+      <div class="field">
+        <label>建議措施</label>
+        <textarea id="advice" placeholder="請輸入…"></textarea>
+      </div>
+
+      <div class="actions">
+        <button class="primary" onclick="submitForm()">送出</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if (typeof GAS_URL === 'undefined') {
+      alert('config.js 未載入，請確認檔案與 GAS_URL 設定');
+    }
+
+    // 預設今日（台灣時區） yyyy-MM-dd
+    function todayStr(){
+      const tz = new Date();
+      const y = tz.getFullYear();
+      const m = String(tz.getMonth()+1).padStart(2,'0');
+      const d = String(tz.getDate()).padStart(2,'0');
+      return `${y}-${m}-${d}`;
+    }
+
+    async function loadOptions(){
+      try{
+        const u = new URL(GAS_URL);
+        u.searchParams.set('action','options');
+        const r = await fetch(u,{cache:'no-store'});
+        const { ok, categories, severities, factors } = await r.json();
+        if(!ok) throw new Error('載入選單失敗');
+
+        function fill(sel, arr){
+          const el = document.getElementById(sel);
+          el.innerHTML = arr.map(v=>`<option value="${v}">${v}</option>`).join('');
+        }
+        fill('category', categories || []);
+        fill('severity', severities || []);
+        fill('factor', factors || []);
+      }catch(e){
+        alert('無法載入選單，請稍後重試');
+        console.error(e);
+      }
+    }
+
+    async function submitForm(){
+      try{
+        const payload = {
+          action:'submit',
+          reportDate: document.getElementById('reportDate').value || todayStr(),
+          admitDate : document.getElementById('admitDate').value || '',
+          category  : document.getElementById('category').value || '',
+          severity  : document.getElementById('severity').value || '',
+          chartNo   : document.getElementById('chartNo').value.trim(),
+          name      : document.getElementById('name').value.trim(),
+          bed       : document.getElementById('bed').value.trim(),
+          factor    : document.getElementById('factor').value || '',
+          message   : document.getElementById('message').value.trim(),
+          nursing   : document.getElementById('nursing').value.trim(),
+          advice    : document.getElementById('advice').value.trim(),
+        };
+
+        const r = await fetch(GAS_URL, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload),
+        });
+        const res = await r.json();
+        if(!res.ok) throw new Error(res.error || '送出失敗');
+
+        alert('送出成功！');
+        // 清空文字欄，日期保留今天
+        ['chartNo','name','bed','message','nursing','advice'].forEach(id=>document.getElementById(id).value='');
+      }catch(e){
+        console.error(e);
+        alert('送出失敗：' + e.message);
+      }
+    }
+
+    // 初始
+    document.getElementById('reportDate').value = todayStr();
+    loadOptions();
+  </script>
 </body>
 </html>
